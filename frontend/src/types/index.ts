@@ -1,5 +1,3 @@
-// Файл: src/types/index.ts
-
 export interface Ad {
   id: number;
   title: string;
@@ -11,6 +9,6 @@ export interface Ad {
   canBarter: boolean;
 }
 
-export type ViewState = 'home' | 'adDetails' | 'profile' | 'createAd';
+export type ViewState = 'home' | 'adDetails' | 'profile' | 'createAd' | 'register';
 
 export type ProfileTab = 'myAds' | 'tickets';
