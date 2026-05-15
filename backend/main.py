@@ -1,105 +1,37 @@
-from fastapi import FastAPI, HTTPException, status
-from pydantic import BaseModel, EmailStr
-import psycopg2
-from psycopg2.extras import RealDictCursor
+import os
+import shutil
+from fastapi import FastAPI, File, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from routers import auth, ads, barter, tickets, notifications
+
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
 
 app = FastAPI(title="TrueSell API")
 
-# Конфиг БД (поменяй пароль на свой из pgAdmin)
-DB_CONFIG = {
-    "dbname": "truesell_db",
-    "user": "postgres",
-    "password": "yourpassword", 
-    "host": "localhost",
-    "port": "5432"
-}
+# корс
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-def get_db():
-    """Функция для подключения к БД (возвращает коннект)"""
-    return psycopg2.connect(**DB_CONFIG, cursor_factory=RealDictCursor)
+# фото
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
-# --- Pydantic Схемы (Валидация данных) ---
+# загрузка файла
+@app.post("/api/upload")
+def upload_image(file: UploadFile = File(...)):
+    file_location = f"uploads/{file.filename}"
+    with open(file_location, "wb+") as file_object:
+        shutil.copyfileobj(file.file, file_object)
+    return {"url": f"http://localhost:8000/uploads/{file.filename}"}
 
-class UserRegister(BaseModel):
-    email: EmailStr
-    password: str
-    name: str
-
-class AdCreate(BaseModel):
-    title: str
-    description: str
-    price: int
-    is_private: bool
-    image_url: str
-    user_id: int # В будущем будем брать из токена авторизации, пока передаем явно
-
-# --- Эндпоинты (Ручки API) ---
-
-@app.post("/api/register", status_code=status.HTTP_201_CREATED)
-def register_user(user: UserRegister):
-    """Регистрация нового пользователя"""
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    try:
-        # В реальном проекте тут нужно хэшировать пароль через bcrypt!
-        # Пока пишем как есть для прототипа
-        cursor.execute(
-            "INSERT INTO users (email, password_hash, name) VALUES (%s, %s, %s) RETURNING id;",
-            (user.email, user.password, user.name)
-        )
-        new_user_id = cursor.fetchone()['id']
-        conn.commit()
-        return {"message": "Пользователь успешно создан", "user_id": new_user_id}
-    except psycopg2.IntegrityError:
-        conn.rollback()
-        raise HTTPException(status_code=400, detail="Пользователь с таким email уже существует")
-    finally:
-        cursor.close()
-        conn.close()
-
-@app.get("/api/ads")
-def get_ads(only_private: bool = False):
-    """Получить все объявления. С поддержкой нашей фичи 'Только частники'"""
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    # Делаем JOIN, чтобы сразу отдавать имя продавца вместе с объявлением
-    query = """
-        SELECT a.id, a.title, a.description, a.price, a.is_private, a.image_url, 
-               u.name as seller_name, u.email as seller_email 
-        FROM ads a
-        JOIN users u ON a.user_id = u.id
-    """
-    
-    if only_private:
-        query += " WHERE a.is_private = TRUE"
-        
-    cursor.execute(query)
-    ads = cursor.fetchall()
-    
-    cursor.close()
-    conn.close()
-    
-    return ads
-
-@app.post("/api/ads", status_code=status.HTTP_201_CREATED)
-def create_ad(ad: AdCreate):
-    """Создать новое объявление"""
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    cursor.execute(
-        """
-        INSERT INTO ads (title, description, price, is_private, image_url, user_id) 
-        VALUES (%s, %s, %s, %s, %s, %s) RETURNING id;
-        """,
-        (ad.title, ad.description, ad.price, ad.is_private, ad.image_url, ad.user_id)
-    )
-    new_ad_id = cursor.fetchone()['id']
-    conn.commit()
-    
-    cursor.close()
-    conn.close()
-    
-    return {"message": "Объявление опубликовано", "ad_id": new_ad_id}
+app.include_router(auth.router)
+app.include_router(ads.router)
+app.include_router(barter.router)
+app.include_router(tickets.router)
+app.include_router(notifications.router)

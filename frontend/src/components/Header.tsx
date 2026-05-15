@@ -14,7 +14,7 @@ export const Header: React.FC<HeaderProps> = ({ isLoggedIn, setCurrentView, onLo
       <nav className="nav-buttons">
         {isLoggedIn ? (
           <>
-            <button className="btn-secondary" onClick={() => setCurrentView('profile')}>👤 Профиль</button>
+            <button className="btn-secondary" onClick={() => setCurrentView('profile')}>Профиль</button>
             <button className="btn-danger" onClick={onLogout}>Выйти</button>
           </>
         ) : (

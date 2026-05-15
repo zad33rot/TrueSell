@@ -516,7 +516,6 @@ button:active {
   animation: scaleUp 0.3s ease;
 }
 
-/* Аккуратные кнопки навигации */
 .btn-back, .btn-cancel {
   display: inline-flex;
   align-items: center;
@@ -536,7 +535,6 @@ button:active {
   transform: translateX(-3px);
 }
 
-/* Номер телефона в объявлении */
 .phone-block {
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
@@ -552,7 +550,6 @@ button:active {
   text-decoration: none;
 }
 
-/* Форма техподдержки в профиле */
 .support-form {
   margin-top: 20px;
   padding-top: 20px;
@@ -564,20 +561,19 @@ button:active {
   margin-top: 10px;
 }
 
-/* ЖЕЛЕЗОБЕТОННАЯ СЕТКА (Карточки в ряд) */
 .grid {
   display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
   gap: 25px !important;
-  align-items: stretch !important;
+  width: 100%;
+  align-items: stretch;
 }
 
-/* ВЫПАДАЮЩЕЕ МЕНЮ НАСТРОЕК */
 .settings-container {
   position: relative;
-  margin-bottom: 25px;
+  margin-bottom: 30px;
   display: flex;
-  justify-content: flex-end; /* Кнопка будет справа */
+  justify-content: flex-end; 
   z-index: 100;
 }
 
@@ -593,32 +589,42 @@ button:active {
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: 0.2s;
+  transition: all 0.2s ease;
 }
 
 .btn-settings:hover {
   background: #f8fafc;
+  border-color: var(--primary);
 }
 
 .settings-dropdown {
   position: absolute;
-  top: 110%; /* Выскакивает ровно под кнопкой */
+  top: calc(100% + 10px); 
   right: 0;
   background: white;
   border: 1px solid var(--border);
   padding: 20px;
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  min-width: 260px;
-  animation: fadeIn 0.2s ease;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  min-width: 280px;
+  animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: top right;
 }
 
 .settings-dropdown h4 {
   margin-top: 0;
   margin-bottom: 15px;
-  font-size: 16px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
   border-bottom: 1px solid var(--border);
   padding-bottom: 10px;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 @keyframes scaleUp {
