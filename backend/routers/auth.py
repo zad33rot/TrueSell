@@ -1,4 +1,3 @@
-# backend/routers/auth.py
 from fastapi import APIRouter, HTTPException, status
 import psycopg2
 from database import get_db
